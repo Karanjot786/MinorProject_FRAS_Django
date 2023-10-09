@@ -27,7 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,11 +39,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'compressor',
+    "tailwind",
+    'theme',
+    'django_browser_reload',
 ]
-
+TAILWIND_APP_NAME = 'theme'
+NPM_BIN_PATH = '/usr/local/bin/npm'
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -51,11 +57,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "fras.urls"
-COMPRESS_ROOT = BASE_DIR / 'static'
-
-COMPRESS_ENABLED = True
-
-STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
 
 TEMPLATES = [
     {
@@ -116,12 +117,15 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'theme/static_src'),
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "static_src/"
+STATIC_ROOT ="static_src/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

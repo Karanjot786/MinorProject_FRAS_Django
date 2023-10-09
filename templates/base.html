@@ -1,5 +1,4 @@
-{% load compress %}
-{% load static %}
+{% load static tailwind_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Django + Tailwind CSS + Flowbite</title>
 
-    <link rel="stylesheet" href="{% static 'src/output.css' %}">
+    {% tailwind_css %}
 
 
 </head>
