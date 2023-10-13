@@ -39,15 +39,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "tailwind",
-    'theme',
-    'django_browser_reload',
+    "recognition",
+    "crispy_forms",
+    "crispy_bootstrap4",
 ]
-TAILWIND_APP_NAME = 'theme'
-NPM_BIN_PATH = '/usr/local/bin/npm'
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -114,18 +114,19 @@ LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
 
+APPEND_SLASH= False
 USE_I18N = True
 
 USE_TZ = True
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'theme/static_src'),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'theme/static_src'),
+# ]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = "static_src/"
-STATIC_ROOT ="static_src/"
+STATIC_URL = "static/"
+STATIC_ROOT ="static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
