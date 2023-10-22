@@ -47,9 +47,9 @@ source env/bin/activate
 pip3 install cmake 
 pip3 install dlib
 pip3 install -r requirements.txt
-Python3 manage.py makemigrations
-Python3 manage.py migrate
-Python3 manage.py runserver
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py runserver
 
 ```
 - Enjoy !
