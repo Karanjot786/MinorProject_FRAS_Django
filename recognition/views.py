@@ -8,6 +8,7 @@ from face_recognition.face_recognition_cli import image_files_in_folder as IFF
 from sklearn.svm import SVC
 from .forms import usernameForm,DateForm,UsernameAndDateForm, DateForm_2
 import os
+import matplotlib as mpl
 import cv2
 import imutils
 import dlib
@@ -16,15 +17,11 @@ from imutils.face_utils import FaceAligner
 from imutils.video import VideoStream
 import face_recognition
 import numpy as np
-from sklearn import svm
-from sklearn.externals import joblib
 from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import Normalizer
-from sklearn.metrics import accuracy_score
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
-import pickle
+import pickle5 as pickle
 import time
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -34,19 +31,21 @@ import math
 from django.contrib.auth.forms import UserCreationForm
 
 
+mpl.use('Agg')
+
 # Create your views here.
 
 def home(request):
         return render(request, 'home.html')
 
 def register(request):
-	# if request.user.username!='admin':
-	# 	return redirect('not-authorised')
+	if request.user.username!='admin':
+		return redirect('not-authorised')
 	if request.method=='POST':
 		form=UserCreationForm(request.POST)
 		if form.is_valid():
 			form.save() ###add user to database
-			messages.success(request, f'Employee registered successfully!')
+			messages.success(request, f'Student registered successfully!')
 			return redirect('dashboard')
 	else:
 		form=UserCreationForm()
@@ -65,7 +64,7 @@ def create_dataset(username):
 	directory='FR_Data/dataset/{}/'.format(id)
 	print("[INFO] Loading the facial detector")
 	detector = dlib.get_frontal_face_detector()
-	predictor = dlib.shape_predictor('face_recognition_data/shape_predictor_68_face_landmarks.dat')
+	predictor = dlib.shape_predictor('FR_Data/shape_predictor_68_face_landmarks.dat')
 	fa = FaceAligner(predictor , desiredFaceWidth = 96)
 	print("[INFO] Initializing Video stream")
 	vs = VideoStream(src=0).start()
@@ -296,11 +295,11 @@ def students_present_today():
 def dashboard(request):
 	if(request.user.username=='admin'):
 		print("admin")
-		return render(request, 'recognition/admin_dashboard.html')
+		return render(request, 'admin_dashboard.html')
 	else:
 		print("not admin")
 
-		return render(request,'recognition/employee_dashboard.html')
+		return render(request,'student_dashboard.html')
 	
 @login_required
 def add_photos(request):
@@ -315,7 +314,7 @@ def add_photos(request):
 			messages.success(request, f'Dataset Created')
 			return redirect('add-photos')
 		else:
-			messages.warning(request, f'No such username found. Please register employee first.')
+			messages.warning(request, f'No such username found. Please register student first.')
 			return redirect('dashboard')
 
 
@@ -323,18 +322,18 @@ def add_photos(request):
 		
 
 			form=usernameForm()
-			return render(request,'recognition/add_photos.html', {'form' : form})
+			return render(request,'add_photos.html', {'form' : form})
 	
 
 def mark_attendance(request):
     detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor('face_recognition_data/shape_predictor_68_face_landmarks.dat')
-    svc_save_path="face_recognition_data/svc.sav"
+    predictor = dlib.shape_predictor('FR_Data/shape_predictor_68_face_landmarks.dat')
+    svc_save_path="FR_Data/svc.sav"
     with open(svc_save_path, 'rb') as f:
             svc = pickle.load(f)
     fa = FaceAligner(predictor , desiredFaceWidth = 96)
     encoder=LabelEncoder()
-    encoder.classes_ = np.load('face_recognition_data/classes.npy')
+    encoder.classes_ = np.load('FR_Data/classes.npy')
     faces_encodings = np.zeros((1,128))
     no_of_faces = len(svc.predict_proba(faces_encodings)[0])
     count = {}
@@ -390,13 +389,13 @@ def mark_attendance(request):
 
 def mark_attendance_out(request):
     D = dlib.get_frontal_face_detector()
-    P = dlib.shape_predictor('face_recognition_data/shape_predictor_68_face_landmarks.dat')
-    svc_save_path="face_recognition_data/svc.sav"
+    P = dlib.shape_predictor('FR_Data/shape_predictor_68_face_landmarks.dat')
+    svc_save_path="FR_Data/svc.sav"
     with open(svc_save_path, 'rb') as f:
             svc = pickle.load(f)
     fa = FaceAligner(P , desiredFaceWidth = 96)
     encoder=LabelEncoder()
-    encoder.classes_ = np.load('face_recognition_data/classes.npy')
+    encoder.classes_ = np.load('FR_Data/classes.npy')
 
     faces_encodings = np.zeros((1,128))
     no_of_faces = len(svc.predict_proba(faces_encodings)[0])
@@ -456,7 +455,7 @@ def train(request):
 	if request.user.username!='admin':
 		return redirect('not-authorised')
 
-	training_dir='face_recognition_data/training_dataset'
+	training_dir='FR_Data/dataset'
 	count=0
 	for person_name in os.listdir(training_dir):
 		curr_directory=os.path.join(training_dir,person_name)
@@ -493,17 +492,17 @@ def train(request):
 	y=encoder.transform(y)
 	X1=np.array(X)
 	print("shape: "+ str(X1.shape))
-	np.save('face_recognition_data/classes.npy', encoder.classes_)
+	np.save('FR_Data/classes.npy', encoder.classes_)
 	svc = SVC(kernel='linear',probability=True)
 	svc.fit(X1,y)
-	svc_save_path="face_recognition_data/svc.sav"
+	svc_save_path="FR_Data/svc.sav"
 	with open(svc_save_path, 'wb') as f:
 		pickle.dump(svc,f)
 
 	
 	v_Data(X1,targets)
 	messages.success(request, f'Training Complete.')
-	return render(request,"recognition/train.html")
+	return render(request,"train.html")
 
 def student_given_date(present_qs,time_qs):
 	rmc()
@@ -561,7 +560,7 @@ def student_given_date(present_qs,time_qs):
 	plt.xticks(rotation='vertical')
 	rcParams.update({'figure.autolayout': True})
 	plt.tight_layout()
-	plt.savefig('./recognition/static/recognition/img/attendance_graphs/hours_vs_employee/1.png')
+	plt.savefig('./static/img/attendance_graphs/hours_vs_student/1.png')
 	plt.close()
 	return qs
 
@@ -569,13 +568,13 @@ def student_given_date(present_qs,time_qs):
 
 @login_required
 def not_authorised(request):
-	return render(request,'recognition/not_authorised.html')
+	return render(request,'not_authorised.html')
 
 @login_required
 def view_attendance_home(request):
 	total_num_of_stu=total_number_students()
 	stu_present_today=students_present_today()
-	return render(request,"recognition/view_attendance_home.html", {'total_num_of_stu' : total_num_of_stu, 'stu_present_today': stu_present_today})
+	return render(request,"view_attendance_home.html", {'total_num_of_stu' : total_num_of_stu, 'stu_present_today': stu_present_today})
 
 
 @login_required
@@ -598,7 +597,7 @@ def view_attendance_date(request):
 				qs=student_given_date(present_qs,time_qs)
 
 
-				return render(request,'recognition/view_attendance_date.html', {'form' : form,'qs' : qs })
+				return render(request,'view_attendance_date.html', {'form' : form,'qs' : qs })
 			else:
 				messages.warning(request, f'No records for selected date.')
 				return redirect('view-attendance-date')
@@ -606,7 +605,7 @@ def view_attendance_date(request):
 		
 
 			form=DateForm()
-			return render(request,'recognition/view_attendance_date.html', {'form' : form, 'qs' : qs})
+			return render(request,'view_attendance_date.html', {'form' : form, 'qs' : qs})
 
 
 @login_required
@@ -632,7 +631,7 @@ def view_attendance_student(request):
 				
 				if date_to < date_from:
 					messages.warning(request, f'Invalid date selection.')
-					return redirect('view-attendance-employee')
+					return redirect('view-attendance-student')
 				else:
 					
 
@@ -641,21 +640,21 @@ def view_attendance_student(request):
 					
 					if (len(time_qs)>0 or len(present_qs)>0):
 						qs=given_student(present_qs,time_qs,admin=True)
-						return render(request,'recognition/view_attendance_employee.html', {'form' : form, 'qs' :qs})
+						return render(request,'view_attendance_student.html', {'form' : form, 'qs' :qs})
 					else:
 						messages.warning(request, f'No records for selected duration.')
-						return redirect('view-attendance-employee')
+						return redirect('view-attendance-student')
 			else:
 				print("invalid username")
 				messages.warning(request, f'No such username found.')
-				return redirect('view-attendance-employee')
+				return redirect('view-attendance-student')
 
 
 	else:
 		
 
 			form=UsernameAndDateForm()
-			return render(request,'recognition/view_attendance_employee.html', {'form' : form, 'qs' :qs})
+			return render(request,'view_attendance_student.html', {'form' : form, 'qs' :qs})
 
 
 
@@ -677,7 +676,7 @@ def view_my_attendance_student_login(request):
 			date_to=form.cleaned_data.get('date_to')
 			if date_to < date_from:
 					messages.warning(request, f'Invalid date selection.')
-					return redirect('view-my-attendance-employee-login')
+					return redirect('view-my-attendance-student-login')
 			else:
 					
 
@@ -686,13 +685,13 @@ def view_my_attendance_student_login(request):
 				
 					if (len(time_qs)>0 or len(present_qs)>0):
 						qs=given_student(present_qs,time_qs,admin=False)
-						return render(request,'recognition/view_my_attendance_employee_login.html', {'form' : form, 'qs' :qs})
+						return render(request,'view_my_attendance_student_login.html', {'form' : form, 'qs' :qs})
 					else:
 						
 						messages.warning(request, f'No records for selected duration.')
-						return redirect('view-my-attendance-employee-login')
+						return redirect('view-my-attendance-student-login')
 	else:
 		
 
 			form=DateForm_2()
-			return render(request,'recognition/view_my_attendance_employee_login.html', {'form' : form, 'qs' :qs})
+			return render(request,'view_my_attendance_student_login.html', {'form' : form, 'qs' :qs})
