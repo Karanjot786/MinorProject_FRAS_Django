@@ -92,6 +92,7 @@ def create_dataset(username):
 			break
 	vs.stop()
 	cv2.destroyAllWindows()
+
 	
 
 def predict_face(aligned,svc,threshold=0.7):
